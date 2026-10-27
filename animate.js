@@ -20,7 +20,7 @@
 // embed.html sets window.WASH_IMAGE to a pre-rendered wash layer and needs no p5.
 
 // ghost: when nobody is pointing, a cursor drifts over the face on its own
-const M = { boil: 4, hold: 3, boost: 4, radius: 300, coil: 1, wash: 4, washBoost: 6, ghost: 0, t: -1, cx: -1e4, cy: -1e4 };
+const M = { boil: 4, hold: 3, boost: 8, radius: 300, coil: 1, wash: 7, washBoost: 12, ghost: 0, t: -1, cx: -1e4, cy: -1e4 };
 Object.assign(M, window.DEFAULTS); // a host page's own defaults (embed.html)
 const Q = new URLSearchParams(location.search);
 for (const k in M) if (Q.has(k)) M[k] = +Q.get(k);
