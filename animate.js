@@ -14,7 +14,8 @@
 //    paper move the most.
 // Around the cursor the boil grows: bigger shifts, a redraw every tick, and lines coil
 // into loops like a scribble. The washes boil with the lines (wash.js): a faint fractal
-// ripple of edges and pigment on the same ticks, swirling under the cursor.
+// ripple of edges and pigment on the same ticks, swirling under the cursor. The pen is
+// heard too (sound.js): soft scribbling on every redraw, louder where the cursor moves.
 //
 // Two hosts: animate.html paints the washes live with p5.brush (replicate.js);
 // embed.html sets window.WASH_IMAGE to a pre-rendered wash layer and needs no p5.
@@ -128,6 +129,7 @@ addEventListener("pointermove", (e) => {
 document.addEventListener("pointerleave", () => (pointer.inside = false));
 
 let clock = 0, last = 0, shown = -1;
+const heard = { x: 0, y: 0 }; // where the cursor was on the last tick, for its speed
 function tick(now) {
   clock += Math.min(now - (last || now), 100) / 1000;
   last = now;
@@ -148,6 +150,14 @@ function tick(now) {
     cursor.on += ((target.inside ? 1 : 0) - cursor.on) * 0.35;
     if (cursor.on < 0.01) cursor.on = 0;
     drawAt(n, cursor);
+    window.Sound?.tick({
+      beat: n % M.hold === 0,
+      heat: cursor.on,
+      speed: Math.hypot(cursor.x - heard.x, cursor.y - heard.y),
+      tickSec: 1 / FPS,
+      beatSec: M.hold / FPS,
+    });
+    Object.assign(heard, { x: cursor.x, y: cursor.y });
   }
   requestAnimationFrame(tick);
 }

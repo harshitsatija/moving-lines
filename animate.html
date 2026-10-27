@@ -18,6 +18,8 @@
           background: rgba(42,39,37,.85); color: #e8e0d6; padding: 10px 12px; border-radius: 8px; }
     #ui output { text-align: right; font-variant-numeric: tabular-nums; }
     #ui.hidden { display: none; }
+    #sound { position: fixed; bottom: 10px; right: 10px; z-index: 3; border: 0; border-radius: 6px; padding: 5px 9px; font: inherit; cursor: pointer;
+             background: rgba(42,39,37,.75); color: #e8e0d6; }
   </style>
 </head>
 <body>
@@ -33,6 +35,16 @@
   </form>
   <script>window.WASH_ONLY = true;</script>
   <script src="replicate.js"></script>
+  <button id="sound" title="Pen sound">sound: on</button>
+  <script src="sound.js"></script>
+  <script>
+    const sb = document.getElementById("sound");
+    sb.onclick = () => {
+      if (Sound.on && !Sound.ready) Sound.start(); // first click just lets the page make sound
+      else Sound.on = !Sound.on;
+      sb.textContent = "sound: " + (Sound.on ? "on" : "off");
+    };
+  </script>
   <script src="wash.js"></script>
   <script src="animate.js"></script>
 </body>
