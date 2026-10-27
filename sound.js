@@ -6,9 +6,8 @@
 // A stroke is band-passed noise whose pitch drifts as the "pen" changes direction,
 // with its loudness re-rolled every few milliseconds, which is what makes it scratch.
 // Browsers only start audio after a click or tap, so the pages open behind a "tap to
-// start" overlay (#start): the tap that clears it is the one that starts the sound. On
-// touch screens it says "drag to start": a drag clears it, and lifting the finger
-// (touchend / pointerup) is what lets the sound start.
+// start" overlay (#start), on touch screens too: the tap that clears it is the one
+// that starts the sound.
 
 const Sound = (window.Sound = (() => {
   let ctx, master, noise, on = true, started = false;
@@ -124,10 +123,4 @@ addEventListener("DOMContentLoaded", () => {
     o.classList.add("gone");
   };
   o.addEventListener("click", go);
-  if (matchMedia("(pointer: coarse)").matches) o.querySelector("span").textContent = "drag to start";
-  let from = null;
-  o.addEventListener("pointerdown", (e) => (from = [e.clientX, e.clientY]));
-  o.addEventListener("pointermove", (e) => {
-    if (e.pointerType !== "mouse" && from && Math.hypot(e.clientX - from[0], e.clientY - from[1]) > 12) go();
-  });
 });
