@@ -15,13 +15,19 @@
   x.lineCap = x.lineJoin = "round";
   addEventListener("DOMContentLoaded", () => document.body.append(cv));
 
-  addEventListener("pointermove", (e) => {
+  // Show it on every pointer event and hide it only when the mouse leaves the window
+  // (relatedTarget null), so it never blinks out while the system pointer is hidden.
+  const show = (v) => v !== visible && (cv.style.display = (visible = v) ? "block" : "none");
+  let visible = false;
+  const place = (e) => {
     // pages keep a normal pointer over their controls (#ui), and touch gets none
-    const show = e.pointerType !== "touch" && !e.target.closest?.("#ui");
-    cv.style.display = show ? "block" : "none";
-    cv.style.transform = `translate(${e.clientX - SIZE / 2}px, ${e.clientY - SIZE / 2}px)`;
-  });
-  document.addEventListener("pointerleave", () => (cv.style.display = "none"));
+    show(e.pointerType !== "touch" && !e.target.closest?.("#ui"));
+    // use the newest of the moves the browser bundled while the page was busy drawing
+    const last = e.getCoalescedEvents?.().at(-1) ?? e;
+    cv.style.transform = `translate(${last.clientX - SIZE / 2}px, ${last.clientY - SIZE / 2}px)`;
+  };
+  for (const ev of ["pointermove", "pointerover", "pointerdown", "pointerenter"]) addEventListener(ev, place, { passive: true });
+  document.addEventListener("mouseout", (e) => !e.relatedTarget && show(false));
 
   // a knot like a scribbled ball: a slow orbit with quick small loops riding on it,
   // both wobbling, so every redraw is a different tangle of about the same size
@@ -49,7 +55,7 @@
   let shown = -1;
   (function tick(now) {
     const n = Math.floor((now / 1000) * FPS);
-    if (n !== shown && cv.style.display !== "none") {
+    if (n !== shown && visible) {
       shown = n;
       scribble();
     }

@@ -19,8 +19,8 @@
     #ui output { text-align: right; font-variant-numeric: tabular-nums; }
     #ui.hidden { display: none; }
     /* the pointer is a small animated scribble (cursor.js) */
-    html, body, #start { cursor: none; }
-    #ui, #ui * { cursor: auto; }
+    *, *::before, *::after { cursor: none !important; }
+    #ui, #ui * { cursor: auto !important; }
     #start { position: fixed; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(230,229,226,.45); transition: opacity .5s; }
     #start span { padding: 14px 24px; border-radius: 999px; background: #2a2725; color: #f3ede6; font: 600 16px/1 system-ui, sans-serif; box-shadow: 0 4px 18px rgba(0,0,0,.25); }
     #start.gone { opacity: 0; pointer-events: none; }
@@ -38,11 +38,11 @@
     <label for="washBoost">wash swirl</label><input id="washBoost" type="range" min="0" max="30" step="0.5"><output></output>
   </form>
   <script>window.WASH_ONLY = true;</script>
-  <script src="replicate.js?v=6"></script>
+  <script src="replicate.js?v=7"></script>
   <div id="start"><span>tap to start</span></div>
-  <script src="sound.js?v=6"></script>
-  <script src="cursor.js?v=6"></script>
-  <script src="wash.js?v=6"></script>
-  <script src="animate.js?v=6"></script>
+  <script src="sound.js?v=7"></script>
+  <script src="cursor.js?v=7"></script>
+  <script src="wash.js?v=7"></script>
+  <script src="animate.js?v=7"></script>
 </body>
 </html>
