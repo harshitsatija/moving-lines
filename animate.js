@@ -127,6 +127,9 @@ addEventListener("pointermove", (e) => {
   pointer.moved = performance.now();
 });
 document.addEventListener("pointerleave", () => (pointer.inside = false));
+// a finger lifted is a pointer gone: the scribble zone fades and the ghost takes over
+for (const ev of ["pointerup", "pointercancel"])
+  addEventListener(ev, (e) => e.pointerType !== "mouse" && (pointer.inside = false));
 
 let clock = 0, last = 0, shown = -1;
 const heard = { x: 0, y: 0 }; // where the cursor was on the last tick, for its speed

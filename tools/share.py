@@ -49,11 +49,13 @@ page = f"""<!doctype html>
 <meta property="og:image:height" content="1200">
 <meta property="og:url" content="{base}/x/portrait/?v={v}">
 <link rel="canonical" href="{base}/x/portrait/">
-<meta http-equiv="refresh" content="0; url={base}/embed.html">
 </head>
 <body style="margin:0;background:#e6e5e2">
-<!-- Crawlers read the tags above; people are sent on to the piece. -->
-<a href="{base}/embed.html">Open the painting</a>
+<a href="{base}/embed.html?v={v}">Open the painting</a>
+<!-- People are sent on to the piece with a script, not a meta refresh: crawlers can
+     follow a meta refresh to embed.html, which has no card tags, and then X shows a
+     plain link instead of the player. Crawlers don't run scripts. -->
+<script>location.replace("{base}/embed.html?v={v}");</script>
 </body>
 </html>
 """
