@@ -36,8 +36,9 @@ vec2 seed(float v) { return vec2(fract(v * .618034), fract(v * .381966)) * 97.; 
 
 void main() {
   vec2 px = uv * size;
-  float u = clamp(1. - length(px - cursor) / radius, 0., 1.);
-  float heat = on * u * u * (3. - 2. * u);
+  // same gaussian falloff as the lines (animate.js)
+  float u = min(length(px - cursor) / radius, 1.);
+  float heat = on * (exp(-4. * u * u) - exp(-4.)) / (1. - exp(-4.));
   float nr = texture2D(near, uv).r;
 
   vec2 sb = seed(vBase), sh = seed(vHot + 500.);

@@ -20,7 +20,7 @@
 // embed.html sets window.WASH_IMAGE to a pre-rendered wash layer and needs no p5.
 
 // ghost: when nobody is pointing, a cursor drifts over the face on its own
-const M = { boil: 2, hold: 3, boost: 4, radius: 80, coil: 1, wash: 2.5, washBoost: 6, ghost: 0, t: -1, cx: -1e4, cy: -1e4 };
+const M = { boil: 4, hold: 3, boost: 4, radius: 300, coil: 1, wash: 4, washBoost: 6, ghost: 0, t: -1, cx: -1e4, cy: -1e4 };
 Object.assign(M, window.DEFAULTS); // a host page's own defaults (embed.html)
 const Q = new URLSearchParams(location.search);
 for (const k in M) if (Q.has(k)) M[k] = +Q.get(k);
@@ -91,9 +91,10 @@ const DPR = 2;
   lctx = cv.getContext("2d");
   lctx.lineCap = lctx.lineJoin = "round";
   if (window.WASH_IMAGE) {
+    // onload rather than decode(): decode() can stall while the page is in the background
     const img = new Image();
+    img.onload = () => adoptWashes(img, false);
     img.src = window.WASH_IMAGE;
-    img.decode().then(() => adoptWashes(img, false));
   }
   if (M.t >= 0) drawAt(Math.floor(M.t * FPS), { x: M.cx, y: M.cy, on: 1 });
   else requestAnimationFrame(tick);
@@ -187,17 +188,19 @@ function perlin(x, y, z) {
 const sn = (x, y, z) =>
   Math.max(-1, Math.min(1, 1.27 * (perlin(x, y, z) + 0.5 * perlin(2 * x + 17, 2 * y + 31, 2 * z + 7))));
 
+const falloff = (u) => (Math.exp(-4 * u * u) - Math.exp(-4)) / (1 - Math.exp(-4));
+
 // One redraw of a line: `n` is the 12 fps tick, `c` the cursor.
 function pose(g, n, c) {
   const pts = g.pts, N = pts.length, R = M.radius;
-  // how close the cursor is, per point (smoothstep falloff) and for the line as a whole
+  // how close the cursor is, per point and for the line as a whole: a gaussian, so it
+  // peaks at the cursor and thins out gradually, reaching zero at the radius
   const heat = new Float32Array(N);
   let hot = 0;
   if (c.on > 0) {
     for (let i = 0; i < N; i++) {
       const d = Math.hypot(pts[i][0] - c.x, pts[i][1] - c.y);
-      const u = Math.max(0, 1 - d / R);
-      heat[i] = c.on * u * u * (3 - 2 * u);
+      heat[i] = d < R ? c.on * falloff(d / R) : 0;
       if (heat[i] > hot) hot = heat[i];
     }
   }
@@ -219,7 +222,7 @@ function pose(g, n, c) {
     const slide = amp * along;
     const side = amp * sn(g.seed + i / 25, 3.3, z);
     phase += k * (1 + 0.6 * sn(g.seed + i / 15, 5.5, z));
-    const r = M.coil * (0.4 * g.free + 5 * heat[i]) * (1 + 0.45 * sn(g.seed + i / 20, 6.6, z));
+    const r = M.coil * (0.8 * g.free + 5 * heat[i]) * (1 + 0.45 * sn(g.seed + i / 20, 6.6, z));
     const ex = r * Math.cos(phase), ey = r * squash * Math.sin(phase);
     g.xs[i] = x + tx * slide - ty * side + ex * ct - ey * st;
     g.ys[i] = y + ty * slide + tx * side + ex * st + ey * ct;
