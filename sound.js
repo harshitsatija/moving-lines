@@ -5,8 +5,8 @@
 //    cursor zone, every tick, like the lines there.
 // A stroke is band-passed noise whose pitch drifts as the "pen" changes direction,
 // with its loudness re-rolled every few milliseconds, which is what makes it scratch.
-// Browsers only start audio after a click or key press; until then it stays silent, and
-// the #sound button says so ("click for sound") instead of claiming it is on.
+// Browsers only start audio after a click or tap, so the pages open behind a "tap to
+// start" overlay (#start): the tap that clears it is the one that starts the sound.
 
 const Sound = (window.Sound = (() => {
   let ctx, master, noise, on = true, started = false;
@@ -16,17 +16,7 @@ const Sound = (window.Sound = (() => {
     if (started || !on) return;
     ctx = ctx || new AudioContext();
     build();
-    ctx.resume().then(() => {
-      started = ctx.state === "running";
-      label();
-    });
-  }
-
-  function label() {
-    const b = document.getElementById("sound");
-    if (!b) return;
-    b.textContent = !on ? "🔈 sound off" : started ? "🔊 sound on" : "🔇 click for sound";
-    b.classList.toggle("waiting", on && !started);
+    ctx.resume().then(() => (started = ctx.state === "running"));
   }
 
   function build() {
@@ -81,7 +71,6 @@ const Sound = (window.Sound = (() => {
       on = v;
       if (!v && ctx) { ctx.suspend(); started = false; }
       if (v) start();
-      label();
     },
     get ready() { return started; },
     get output() { return master; }, // for level meters
@@ -118,17 +107,17 @@ const Sound = (window.Sound = (() => {
 
 // start on the first gesture that lets a page make sound
 // (pointermove too: inside an embed that may play audio, a hover is enough)
-// (the sound button handles its own clicks). Browsers differ in which events count as
-// permission to play: iOS only takes a finished tap (touchend / click), not touchstart.
-for (const ev of ["pointerdown", "pointerup", "click", "keydown", "touchstart", "touchend", "pointermove"])
-  addEventListener(ev, (e) => e.target?.id !== "sound" && Sound.start(), { passive: true });
+// Any gesture can start the sound; browsers differ in which events count as permission
+// to play (iOS only takes a finished tap: touchend / click, not touchstart).
+for (const ev of ["pointerdown", "pointerup", "click", "keydown", "touchend", "pointermove"])
+  addEventListener(ev, () => Sound.start(), { passive: true });
 // iPhones mute web audio on the silent switch unless the page says it is media playback
 if (navigator.audioSession) navigator.audioSession.type = "playback";
 
-// The button: the first click lets the page make sound, later clicks toggle it.
 addEventListener("DOMContentLoaded", () => {
-  const b = document.getElementById("sound");
-  if (!b) return;
-  b.onclick = () => (Sound.on && !Sound.ready ? Sound.start() : (Sound.on = !Sound.on));
-  Sound.on = Sound.on; // draw the initial label
+  const o = document.getElementById("start");
+  o?.addEventListener("click", () => {
+    Sound.start();
+    o.classList.add("gone");
+  });
 });

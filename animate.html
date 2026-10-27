@@ -18,10 +18,11 @@
           background: rgba(42,39,37,.85); color: #e8e0d6; padding: 10px 12px; border-radius: 8px; }
     #ui output { text-align: right; font-variant-numeric: tabular-nums; }
     #ui.hidden { display: none; }
-    #sound { position: fixed; bottom: 12px; right: 12px; z-index: 3; border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer;
-             font: 600 14px/1 system-ui, sans-serif; background: #2a2725; color: #f3ede6; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
-    #sound.waiting { animation: nudge 1.6s ease-in-out infinite; }
-    @keyframes nudge { 50% { transform: scale(1.08); background: #4a3f36; } }
+    /* the pointer is a ring */
+    html, body, #start { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><circle cx='16' cy='16' r='11' fill='none' stroke='white' stroke-opacity='.85' stroke-width='4'/><circle cx='16' cy='16' r='11' fill='none' stroke='%232a2725' stroke-width='1.6'/></svg>") 16 16, crosshair; }
+    #start { position: fixed; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(230,229,226,.45); transition: opacity .5s; }
+    #start span { padding: 14px 24px; border-radius: 999px; background: #2a2725; color: #f3ede6; font: 600 16px/1 system-ui, sans-serif; box-shadow: 0 4px 18px rgba(0,0,0,.25); }
+    #start.gone { opacity: 0; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -36,10 +37,10 @@
     <label for="washBoost">wash swirl</label><input id="washBoost" type="range" min="0" max="30" step="0.5"><output></output>
   </form>
   <script>window.WASH_ONLY = true;</script>
-  <script src="replicate.js?v=4"></script>
-  <button id="sound" title="The sound of the pen">🔇 click for sound</button>
-  <script src="sound.js?v=4"></script>
-  <script src="wash.js?v=4"></script>
-  <script src="animate.js?v=4"></script>
+  <script src="replicate.js?v=5"></script>
+  <div id="start"><span>tap to start</span></div>
+  <script src="sound.js?v=5"></script>
+  <script src="wash.js?v=5"></script>
+  <script src="animate.js?v=5"></script>
 </body>
 </html>
