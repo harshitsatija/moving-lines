@@ -15,28 +15,22 @@
     #lines { mix-blend-mode: multiply; position: relative; z-index: 1; }
     #hint { position: fixed; bottom: 10px; left: 0; right: 0; text-align: center; color: #6d655d; transition: opacity .6s; pointer-events: none; }
     #hint.gone { opacity: 0; }
-    #sound { position: fixed; bottom: 10px; right: 10px; z-index: 3; border: 0; border-radius: 6px; padding: 5px 9px; font: inherit; cursor: pointer;
-             background: rgba(42,39,37,.75); color: #e8e0d6; }
+    #sound { position: fixed; bottom: 12px; right: 12px; z-index: 3; border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer;
+             font: 600 14px/1 system-ui, sans-serif; background: #2a2725; color: #f3ede6; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+    #sound.waiting { animation: nudge 1.6s ease-in-out infinite; }
+    @keyframes nudge { 50% { transform: scale(1.08); background: #4a3f36; } }
   </style>
 </head>
 <body>
   <main></main>
-  <div id="hint">move over the painting · click for sound</div>
+  <div id="hint">move over the painting</div>
   <script>
     window.WASH_IMAGE = "data/washes.jpg";
     window.DEFAULTS = { ghost: 1 };
     addEventListener("pointermove", () => document.getElementById("hint").classList.add("gone"), { once: true });
   </script>
-  <button id="sound" title="Pen sound">sound: on</button>
+  <button id="sound" title="The sound of the pen">🔇 click for sound</button>
   <script src="sound.js"></script>
-  <script>
-    const sb = document.getElementById("sound");
-    sb.onclick = () => {
-      if (Sound.on && !Sound.ready) Sound.start(); // first click just lets the page make sound
-      else Sound.on = !Sound.on;
-      sb.textContent = "sound: " + (Sound.on ? "on" : "off");
-    };
-  </script>
   <script src="wash.js"></script>
   <script src="animate.js"></script>
 </body>
