@@ -12,6 +12,7 @@ The host must allow framing by x.com (no X-Frame-Options: DENY, no frame-ancesto
 that exclude it).
 """
 import html
+import re
 import sys
 from pathlib import Path
 
@@ -56,6 +57,11 @@ page = f"""<!doctype html>
 </body>
 </html>
 """
-out = Path(__file__).resolve().parent.parent / "x" / "portrait" / "index.html"
+root = Path(__file__).resolve().parent.parent
+out = root / "x" / "portrait" / "index.html"
 out.write_text(page)
+# the embed's scripts and images carry the same version, so browsers holding cached
+# copies (GitHub Pages lets them keep files 10 minutes) never mix old and new files
+for page_file in (root / "embed.html", root / "animate.html"):
+    page_file.write_text(re.sub(r"\?v=\w+\"", f'?v={v}"', page_file.read_text()))
 print(f"wrote {out}\npost this link on X: {base}/x/portrait/?v={v}")
