@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Moving Lines</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@2.3.3/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5.brush@2.2.3/dist/p5.brush.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #2a2725; }
+    body { display: flex; align-items: center; justify-content: center; font: 13px/1.4 system-ui, sans-serif; }
+    /* p5's canvas (hidden once painted), the boiling wash and the lines share one grid cell */
+    main { display: grid; }
+    main canvas { grid-area: 1 / 1; display: block; max-height: 100vh; max-width: 100vw; width: auto !important; height: auto !important; }
+    #lines { mix-blend-mode: multiply; position: relative; z-index: 1; }
+    #status { position: fixed; bottom: 12px; left: 12px; color: #cfc6bb; }
+    #ui { position: fixed; top: 12px; left: 12px; z-index: 2; display: grid; grid-template-columns: auto 120px 2.5em; gap: 4px 8px; align-items: center;
+          background: rgba(42,39,37,.85); color: #e8e0d6; padding: 10px 12px; border-radius: 8px; }
+    #ui output { text-align: right; font-variant-numeric: tabular-nums; }
+    #ui.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="status"></div>
+  <form id="ui" title="H hides this panel">
+    <label for="boil">boil</label><input id="boil" type="range" min="0" max="4" step="0.25"><output></output>
+    <label for="hold">hold (ticks)</label><input id="hold" type="range" min="1" max="6" step="1"><output></output>
+    <label for="boost">cursor boost</label><input id="boost" type="range" min="0" max="10" step="0.5"><output></output>
+    <label for="radius">cursor radius</label><input id="radius" type="range" min="20" max="200" step="5"><output></output>
+    <label for="coil">coils</label><input id="coil" type="range" min="0" max="2" step="0.1"><output></output>
+    <label for="wash">wash ripple</label><input id="wash" type="range" min="0" max="5" step="0.25"><output></output>
+    <label for="washBoost">wash swirl</label><input id="washBoost" type="range" min="0" max="16" step="0.5"><output></output>
+  </form>
+  <script>window.WASH_ONLY = true;</script>
+  <script src="replicate.js"></script>
+  <script src="wash.js"></script>
+  <script src="animate.js"></script>
+</body>
+</html>

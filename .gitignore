@@ -1,0 +1,6 @@
+# the source photo of the painting stays local; only the replica is published
+data/reference.png
+data/compare.png
+.claude/
+__pycache__/
+.DS_Store

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scribble Portrait</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@2.3.3/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5.brush@2.2.3/dist/p5.brush.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #2a2725; }
+    body { display: flex; align-items: center; justify-content: center; font: 13px/1.4 system-ui, sans-serif; }
+    main canvas { display: block; max-height: 100vh; max-width: 100vw; width: auto !important; height: auto !important; box-shadow: 0 10px 40px rgba(0,0,0,.45); }
+    #ui { position: fixed; top: 12px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap; z-index: 2; }
+    #ui button, #ui label { background: rgba(250,246,240,.92); color: #2a2725; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; font: inherit; }
+    #ui button:hover, #ui label:hover { background: #fff; }
+    #ui input { display: none; }
+    #status { position: fixed; bottom: 12px; left: 12px; color: #cfc6bb; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <button id="regen" title="R">New portrait</button>
+    <label title="Use your own photo">Paint a photo…<input id="file" type="file" accept="image/*"></label>
+    <button id="procedural" title="P">Back to generated face</button>
+    <button id="save" title="S">Save PNG</button>
+  </div>
+  <div id="status"></div>
+  <script src="sketch.js"></script>
+</body>
+</html>

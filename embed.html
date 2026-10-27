@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Moving Lines</title>
+  <!-- The piece on its own, for embedding (the X player card in x/portrait/ loads this):
+       a pre-rendered wash layer instead of the live p5.brush paint, no controls, and a
+       ghost cursor that keeps it scribbling until someone points at it. -->
+  <style>
+    html, body { margin: 0; height: 100%; background: #e6e5e2; overflow: hidden; touch-action: none; }
+    body { display: flex; align-items: center; justify-content: center; font: 13px/1.4 system-ui, sans-serif; }
+    main { display: grid; }
+    main canvas { grid-area: 1 / 1; display: block; max-height: 100vh; max-width: 100vw; width: auto !important; height: auto !important; }
+    #lines { mix-blend-mode: multiply; position: relative; z-index: 1; }
+    #hint { position: fixed; bottom: 10px; left: 0; right: 0; text-align: center; color: #6d655d; transition: opacity .6s; pointer-events: none; }
+    #hint.gone { opacity: 0; }
+  </style>
+</head>
+<body>
+  <main></main>
+  <div id="hint">move over the painting</div>
+  <script>
+    window.WASH_IMAGE = "data/washes.jpg";
+    window.DEFAULTS = { ghost: 1 };
+    addEventListener("pointermove", () => document.getElementById("hint").classList.add("gone"), { once: true });
+  </script>
+  <script src="wash.js"></script>
+  <script src="animate.js"></script>
+</body>
+</html>
