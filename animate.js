@@ -14,13 +14,15 @@
 //    paper move the most.
 // Around the cursor the boil grows: bigger shifts, a redraw every tick, and lines coil
 // into loops like a scribble. The washes boil with the lines (wash.js): a faint fractal
-// ripple of edges and pigment on the same ticks, swirling under the cursor.
+// ripple of edges and pigment on the same ticks, swirling under the cursor. Faint
+// scratches and scribbles cover the sheet too, on the same ticks: denser and loopier
+// in the cursor zone, and left behind along the cursor's recent path.
 //
 // Two hosts: animate.html paints the washes live with p5.brush (replicate.js);
 // embed.html sets window.WASH_IMAGE to a pre-rendered wash layer and needs no p5.
 
 // ghost: when nobody is pointing, a cursor drifts over the face on its own
-const M = { boil: 4, hold: 3, boost: 8, radius: 300, coil: 1, wash: 7, washBoost: 12, ghost: 0, t: -1, cx: -1e4, cy: -1e4 };
+const M = { boil: 4, hold: 3, boost: 8, radius: 300, coil: 1, wash: 7, washBoost: 12, scratch: 1, scratchBoost: 1, ghost: 0, t: -1, cx: -1e4, cy: -1e4 };
 Object.assign(M, window.DEFAULTS); // a host page's own defaults (embed.html)
 const Q = new URLSearchParams(location.search);
 for (const k in M) if (Q.has(k)) M[k] = +Q.get(k);
@@ -82,6 +84,8 @@ const DPR = 2;
     ys: new Float32Array(g.pts.length),
     parts: g.parts.map((p) => ({ ...p, ink: inkOver(p.c, paper), lw: Math.max(0.8, 0.6 * p.w) * 1.5 / LS })),
   }));
+  // scratch colours: the painting's inks, as often as they are drawn
+  for (const g of lines) for (const p of g.parts) for (let k = 0; k < (p.b - p.a) / 20; k++) palette.push(p.ink);
   if (!window.WASH_IMAGE) while (!document.querySelector(".p5Canvas")) await new Promise((r) => setTimeout(r, 50));
   const cv = document.createElement("canvas");
   cv.id = "lines";
@@ -147,6 +151,8 @@ function tick(now) {
     cursor.y += (target.y - cursor.y) * 0.6;
     cursor.on += ((target.inside ? 1 : 0) - cursor.on) * 0.35;
     if (cursor.on < 0.01) cursor.on = 0;
+    trail.push(cursor.on > 0.05 ? { x: cursor.x, y: cursor.y } : null);
+    if (trail.length > TRAIL) trail.shift();
     drawAt(n, cursor);
   }
   requestAnimationFrame(tick);
@@ -235,6 +241,7 @@ function drawAt(n, c) {
   lctx.setTransform(1, 0, 0, 1, 0, 0);
   lctx.clearRect(0, 0, lctx.canvas.width, lctx.canvas.height);
   lctx.setTransform(DPR * LS, 0, 0, DPR * LS, 0, 0);
+  drawScratches(n, c);
   for (const g of lines) {
     pose(g, n, c);
     for (const p of g.parts) {
@@ -247,6 +254,96 @@ function drawAt(n, c) {
       lctx.stroke();
     }
   }
+}
+
+// ---- scratches -------------------------------------------------------------------
+// Faint marks over the whole sheet, under the pen lines: short scratches (one to three
+// near-parallel strokes) and small coiled scribbles. Most sit beside a pen line and run
+// along it, the rest are scattered over bare paper. The sheet's marks are redrawn on
+// the lines' slow beat; the cursor zone and the trail behind the cursor get their own
+// marks every tick, denser, darker and loopier towards the cursor.
+const palette = [], trail = [], TRAIL = 8; // trail: cursor positions of the last ticks
+
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), a | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function drawScratches(n, c) {
+  if (!palette.length) return;
+  let r = rng(Math.floor(n / M.hold) * 2654435761);
+  for (let k = 0; k < 650 * M.scratch; k++) mark(r, null, 0);
+  if (!M.scratchBoost) return;
+  r = rng(n * 40503 + 7);
+  const R = M.radius;
+  if (c.on > 0) {
+    // scatter around the cursor, kept with the same falloff as the boil
+    for (let k = 0; k < 260 * M.scratchBoost * c.on; k++) {
+      const a = 2 * Math.PI * r(), d = R * Math.sqrt(r());
+      const h = c.on * falloff(d / R);
+      if (r() < h) mark(r, [c.x + d * Math.cos(a), c.y + d * Math.sin(a)], h);
+    }
+  }
+  // along the path the cursor took, fading with age
+  for (let i = 1; i < trail.length; i++) {
+    const p = trail[i - 1], q = trail[i];
+    if (!p || !q) continue;
+    const fresh = i / trail.length, len = Math.hypot(q.x - p.x, q.y - p.y);
+    for (let k = 0; k < Math.min(60, len / 2) * M.scratchBoost * fresh; k++) {
+      const t = r(), j = 14 * fresh;
+      mark(r, [p.x + (q.x - p.x) * t + j * (r() - 0.5) * 2, p.y + (q.y - p.y) * t + j * (r() - 0.5) * 2], 0.8 * fresh);
+    }
+  }
+}
+
+// One mark at `pos` (or a place of its own choosing) with heat h in [0, 1].
+function mark(r, pos, h) {
+  let x, y, dir;
+  if (pos) {
+    [x, y] = pos;
+    dir = 2 * Math.PI * r();
+  } else if (r() < 0.6) {
+    const g = lines[(r() * lines.length) | 0], i = (r() * g.pts.length) | 0;
+    x = g.pts[i][0] + 16 * (r() - 0.5);
+    y = g.pts[i][1] + 16 * (r() - 0.5);
+    dir = Math.atan2(g.tan[i][1], g.tan[i][0]) + 0.7 * (r() - 0.5);
+  } else {
+    x = r() * ref.width;
+    y = r() * ref.height;
+    dir = 2 * Math.PI * r();
+  }
+  const ux = Math.cos(dir), uy = Math.sin(dir);
+  lctx.strokeStyle = palette[(r() * palette.length) | 0];
+  lctx.globalAlpha = Math.min(0.85, 0.16 + 0.24 * r() + 0.5 * h);
+  lctx.lineWidth = 0.45 + 0.3 * r() + 0.3 * h;
+  lctx.beginPath();
+  if (r() < 0.2 + 0.6 * h) {
+    // scribble: an uneven coil drawn along dir
+    const L = 8 + 14 * r() + 22 * h, rad = 1.5 + 2.5 * r() + 4 * h, wl = 4 + 3 * r(), sq = 0.5 + 0.4 * r();
+    let ph = 2 * Math.PI * r();
+    for (let s = 0; s <= L; s += 0.8) {
+      ph += (2 * Math.PI * 0.8) / wl;
+      const ex = rad * Math.cos(ph), ey = rad * sq * Math.sin(ph);
+      const px = x + ux * (s - L / 2) + ex * ux - ey * uy, py = y + uy * (s - L / 2) + ex * uy + ey * ux;
+      s ? lctx.lineTo(px, py) : lctx.moveTo(px, py);
+    }
+  } else {
+    // scratch: a few quick, slightly bowed strokes side by side
+    const L = 5 + 12 * r() + 18 * h, bow = 2 * (r() - 0.5), m = 1 + ((r() * 3) | 0);
+    for (let j = 0; j < m; j++) {
+      const ox = -uy * (j * 1.6 + r()), oy = ux * (j * 1.6 + r());
+      const sx = x + ox - (ux * L) / 2, sy = y + oy - (uy * L) / 2;
+      lctx.moveTo(sx, sy);
+      lctx.quadraticCurveTo(x + ox - uy * bow, y + oy + ux * bow, sx + ux * L, sy + uy * L);
+    }
+  }
+  lctx.stroke();
+  lctx.globalAlpha = 1;
 }
 
 // The line canvas is multiplied over the washes; pick the ink that lands on its
